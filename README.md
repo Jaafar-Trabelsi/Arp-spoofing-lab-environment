@@ -1,4 +1,4 @@
-# Arp-spoofing-lab-environment
+# Educational ARP Poisoning Lab
 
 This repository documents my educational lab demonstrating an ARP Poisoning (Man-in-the-Middle) attack. I conducted this lab in a controlled, isolated virtual environment to understand network vulnerabilities and packet interception.
 
@@ -6,9 +6,11 @@ This repository documents my educational lab demonstrating an ARP Poisoning (Man
 * **Attacker Machine:** Kali Linux (`10.0.2.3`)
 * **Target Machine:** Windows 7 (`10.0.2.4`)
 * **Default Gateway:** `10.0.2.1`
-* **Tools Used:** `ifconfig`, `ip route`, `sysctl`, `arpspoof`, Wireshark.
+* **Tools Used:** `ifconfig`, `ip route`, `sysctl`, `arpspoof`, Ettercap, Wireshark.
 
-## Execution Steps
+---
+
+## Phase 1: CLI Method (arpspoof)
 
 ### 1. Network Reconnaissance
 First, I verified the IP configurations of my machines to map out the local network.
@@ -61,6 +63,30 @@ Wireshark confirmed the broadcast of these malicious ARP packets, showing my Kal
 * Because I successfully poisoned the ARP caches, all outbound and inbound traffic for the target routed directly through my Kali machine. By filtering for `tcp.port == 443`, I successfully intercepted and analyzed the TCP and TLSv1.3 application data flowing between the target (`10.0.2.4`) and external internet servers.
 
 ![Wireshark Capture](Phase-1/win7-kali-connection.png)
+
+---
+
+## Phase 2: GUI Method (Ettercap)
+
+### 1. Host Scanning
+As an alternative to the command-line tools, I utilized Ettercap's graphical interface. I launched Ettercap, initiated unified sniffing on `eth0`, and scanned the local subnet to build a list of active hosts.
+
+![Ettercap Host Scan](Phase-2/ettercap-menu.png)
+
+### 2. Setting Targets
+Once the scan completed, I opened the Host List. I identified my Windows 7 target (`10.0.2.4`) and the default gateway (`10.0.2.1`). I assigned `10.0.2.4` as **Target 1** and `10.0.2.1` as **Target 2** to prepare for the MitM attack.
+
+![Ettercap Target Selection](Phase-2/target_arp_pois.png)
+
+### 3. Launching ARP Poisoning
+I activated the ARP poisoning plugin within Ettercap. To verify the attack was successful, I opened Wireshark and observed the continuous stream of forged ARP replies being sent to the network, confirming my Kali machine was successfully intercepting the route.
+
+![Wireshark ARP Verification](Phase-2/wireshark1.png)
+
+### 4. Traffic Interception
+With the Ettercap MitM attack running seamlessly, I monitored the `eth0` interface in Wireshark. By applying a filter for `tcp.port == 443`, I was able to capture the target's web traffic, confirming that TCP packets originating from `10.0.2.4` were successfully routing through my machine.
+
+![Wireshark TCP Capture](Phase-2/w2.png)
 
 ---
 **Disclaimer:** This lab was performed strictly for educational purposes within a local, authorized virtual environment to study network security principles.
